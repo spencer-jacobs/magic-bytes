@@ -1,76 +1,42 @@
-import { toHex } from './toHex';
-import { createComplexNode, createNode, Info, merge, Tree } from './tree';
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const toHex_1 = require("./toHex");
+const tree_1 = require("./tree");
 // https://en.wikipedia.org/wiki/List_of_file_signatures
 let fileType = new Map();
-let tree: Tree = {
+let tree = {
     noOffset: null,
     offset: {},
 };
-
-type TypeName = string;
-type Signature = string[];
-
-const addWithCharBytes = (
-    typeName: TypeName,
-    signatureString: string,
-    additionalInfo?: Info | undefined,
-    offset?: number
-) => {
-    let signature: string[] = [];
+const addWithCharBytes = (typeName, signatureString, additionalInfo, offset) => {
+    let signature = [];
     for (const char of signatureString) {
         const val = '0x' + char.charCodeAt(0).toString(16);
         signature.push(val);
     }
     add(typeName, signature, additionalInfo, offset);
 };
-
-const add = (
-    typename: TypeName,
-    signature: Signature,
-    additionalInfo?: Info | undefined,
-    offset?: number
-) => {
+const add = (typename, signature, additionalInfo, offset) => {
     fileType.set(typename, signature);
     if (offset) {
-        const existing = tree.offset[toHex(offset)];
+        const existing = tree.offset[toHex_1.toHex(offset)];
         if (!existing) {
-            tree.offset[toHex(offset)] = createComplexNode(
-                typename,
-                signature.map((e) => e.toLowerCase()),
-                additionalInfo
-            );
-        } else {
-            const merged = merge(
-                createNode(
-                    typename,
-                    signature.map((e) => e.toLowerCase()),
-                    additionalInfo
-                ),
-                { ...existing }
-            );
-            tree.offset[toHex(offset)] = merged;
+            tree.offset[toHex_1.toHex(offset)] = tree_1.createComplexNode(typename, signature.map((e) => e.toLowerCase()), additionalInfo);
         }
-    } else {
+        else {
+            const merged = tree_1.merge(tree_1.createNode(typename, signature.map((e) => e.toLowerCase()), additionalInfo), { ...existing });
+            tree.offset[toHex_1.toHex(offset)] = merged;
+        }
+    }
+    else {
         if (tree.noOffset === null) {
-            tree.noOffset = createComplexNode(
-                typename,
-                signature.map((e) => e.toLowerCase()),
-                additionalInfo
-            );
-        } else {
-            tree.noOffset = merge(
-                createNode(
-                    typename,
-                    signature.map((e) => e.toLowerCase()),
-                    additionalInfo
-                ),
-                tree.noOffset
-            );
+            tree.noOffset = tree_1.createComplexNode(typename, signature.map((e) => e.toLowerCase()), additionalInfo);
+        }
+        else {
+            tree.noOffset = tree_1.merge(tree_1.createNode(typename, signature.map((e) => e.toLowerCase()), additionalInfo), tree.noOffset);
         }
     }
 };
-
 add('gif', ['0x47', '0x49', '0x46', '0x38', '0x37', '0x61'], {
     mime: 'image/gif',
     extension: 'gif',
@@ -79,81 +45,54 @@ add('gif', ['0x47', '0x49', '0x46', '0x38', '0x39', '0x61'], {
     mime: 'image/gif',
     extension: 'gif',
 });
-
 add('jpg', ['0xFF', '0xD8', '0xFF', '0xDB'], {
     mime: 'image/jpeg',
     extension: 'jpeg',
 });
-add(
-    'jpg',
-    [
-        '0xFF',
-        '0xD8',
-        '0xFF',
-        '0xE0',
-        '?',
-        '?',
-        '0x4A',
-        '0x46',
-        '0x49',
-        '0x46',
-        '0x00',
-        '0x01',
-    ],
-    { mime: 'image/jpeg', extension: 'jpeg' }
-);
-add(
-    'jpg',
-    [
-        '0xFF',
-        '0xD8',
-        '0xFF',
-        '0xE1',
-        '?',
-        '?',
-        '0x45',
-        '0x78',
-        '0x69',
-        '0x66',
-        '0x00',
-        '0x00',
-    ],
-    { mime: 'image/jpeg', extension: 'jpeg' }
-);
-
-add(
-    'webp',
-    [
-        '0x52',
-        '0x49',
-        '0x46',
-        '0x46',
-        '?',
-        '?',
-        '?',
-        '?',
-        '0x57',
-        '0x45',
-        '0x42',
-        '0x50',
-    ],
-    { mime: 'image/webp', extension: 'webp' }
-);
-
-add(
-    'heif',
-    ['0x66', '0x74', '0x79', '0x70', '0x6D', '0x69', '0x66', '0x31'],
-    { mime: 'image/heif', extension: 'heif' },
-    4
-);
-
-add(
-    'heif',
-    ['0x66', '0x74', '0x79', '0x70', '0x68', '0x65', '0x69', '0x63'],
-    { mime: 'image/heif', extension: 'heic' },
-    4
-);
-
+add('jpg', [
+    '0xFF',
+    '0xD8',
+    '0xFF',
+    '0xE0',
+    '?',
+    '?',
+    '0x4A',
+    '0x46',
+    '0x49',
+    '0x46',
+    '0x00',
+    '0x01',
+], { mime: 'image/jpeg', extension: 'jpeg' });
+add('jpg', [
+    '0xFF',
+    '0xD8',
+    '0xFF',
+    '0xE1',
+    '?',
+    '?',
+    '0x45',
+    '0x78',
+    '0x69',
+    '0x66',
+    '0x00',
+    '0x00',
+], { mime: 'image/jpeg', extension: 'jpeg' });
+add('webp', [
+    '0x52',
+    '0x49',
+    '0x46',
+    '0x46',
+    '?',
+    '?',
+    '?',
+    '?',
+    '0x57',
+    '0x45',
+    '0x42',
+    '0x50',
+], { mime: 'image/webp', extension: 'webp' });
+add('heif', ['0x66', '0x74', '0x79', '0x70', '0x6D', '0x69', '0x66', '0x31'], { mime: 'image/heif', extension: 'heif' }, 4);
+add('heif', ['0x66', '0x74', '0x79', '0x70', '0x68', '0x65', '0x69', '0x63'], { mime: 'image/heif', extension: 'heic' }, 4);
 add('rpm', ['0xed', '0xab', '0xee', '0xdb']);
 add('bin', ['0x53', '0x50', '0x30', '0x31'], {
     mime: 'application/octet-stream',
@@ -163,149 +102,31 @@ add('pic', ['0x00']);
 add('pif', ['0x00']);
 add('sea', ['0x00']);
 add('ytr', ['0x00']);
-
 // 66747970
 // 6D703432
-add(
-    'mp4',
-    ['0x66', '0x74', '0x79', '0x70'],
-    { mime: 'video/mp4', extension: 'mp4' },
-    0x4
-);
-
-addWithCharBytes(
-    'avif',
-    'ftypavif',
-    { mime: 'image/avif', extension: 'avif' },
-    0x4
-);
-addWithCharBytes(
-    'avif',
-    'ftypavis',
-    { mime: 'image/avif', extension: 'avif' },
-    0x4
-);
-addWithCharBytes(
-    'heic',
-    'ftypmifl',
-    { mime: 'image/heif', extension: 'heic' },
-    0x4
-);
-addWithCharBytes(
-    'heic',
-    'ftypmsfl',
-    { mime: 'image/heif-sequence', extension: 'heic' },
-    0x4
-);
-addWithCharBytes(
-    'heic',
-    'ftypheic',
-    { mime: 'image/heic', extension: 'heic' },
-    0x4
-);
-addWithCharBytes(
-    'heic',
-    'ftypheix',
-    { mime: 'image/heic', extension: 'heic' },
-    0x4
-);
-addWithCharBytes(
-    'heic',
-    'ftyphevc',
-    { mime: 'image/heic-sequence', extension: 'heic' },
-    0x4
-);
-addWithCharBytes(
-    'heic',
-    'ftyphevx',
-    { mime: 'image/heic-sequence', extension: 'heic' },
-    0x4
-);
-addWithCharBytes(
-    'mov',
-    'ftypqt',
-    { mime: 'video/quicktime', extension: 'mov' },
-    0x4
-);
-addWithCharBytes(
-    'm4v',
-    'ftypM4V',
-    { mime: 'video/x-m4v', extension: 'm4v' },
-    0x4
-);
-addWithCharBytes(
-    'm4v',
-    'ftypM4VH',
-    { mime: 'video/x-m4v', extension: 'm4v' },
-    0x4
-);
-addWithCharBytes(
-    'm4v',
-    'ftypM4VP',
-    { mime: 'video/x-m4v', extension: 'm4v' },
-    0x4
-);
-addWithCharBytes(
-    'm4p',
-    'ftypM4P',
-    { mime: 'video/mp4', extension: 'm4p' },
-    0x4
-);
-addWithCharBytes(
-    'm4b',
-    'ftypM4B',
-    { mime: 'audio/mp4', extension: 'm4b' },
-    0x4
-);
-addWithCharBytes(
-    'm4a',
-    'ftypM4A',
-    { mime: 'audio/x-m4a', extension: 'm4a' },
-    0x4
-);
-addWithCharBytes(
-    'f4v',
-    'ftypF4V',
-    { mime: 'video/mp4', extension: 'f4v' },
-    0x4
-);
-addWithCharBytes(
-    'f4p',
-    'ftypF4P',
-    { mime: 'video/mp4', extension: 'f4p' },
-    0x4
-);
-addWithCharBytes(
-    'f4a',
-    'ftypF4A',
-    { mime: 'audio/mp4', extension: 'f4a' },
-    0x4
-);
-addWithCharBytes(
-    'f4b',
-    'ftypF4B',
-    { mime: 'audio/mp4', extension: 'f4b' },
-    0x4
-);
-addWithCharBytes(
-    'cr3',
-    'ftypcrx',
-    { mime: 'image/x-canon-cr3', extension: 'cr3' },
-    0x4
-);
-addWithCharBytes(
-    '3g2',
-    'ftyp3g2',
-    { mime: 'video/3gpp2', extension: '3g2' },
-    0x4
-);
-addWithCharBytes(
-    '3gp',
-    'ftyp3g',
-    { mime: 'video/3gpp', extension: '3gp' },
-    0x4
-);
-
+add('mp4', ['0x66', '0x74', '0x79', '0x70'], { mime: 'video/mp4', extension: 'mp4' }, 0x4);
+addWithCharBytes('avif', 'ftypavif', { mime: 'image/avif', extension: 'avif' }, 0x4);
+addWithCharBytes('avif', 'ftypavis', { mime: 'image/avif', extension: 'avif' }, 0x4);
+addWithCharBytes('heic', 'ftypmifl', { mime: 'image/heif', extension: 'heic' }, 0x4);
+addWithCharBytes('heic', 'ftypmsfl', { mime: 'image/heif-sequence', extension: 'heic' }, 0x4);
+addWithCharBytes('heic', 'ftypheic', { mime: 'image/heic', extension: 'heic' }, 0x4);
+addWithCharBytes('heic', 'ftypheix', { mime: 'image/heic', extension: 'heic' }, 0x4);
+addWithCharBytes('heic', 'ftyphevc', { mime: 'image/heic-sequence', extension: 'heic' }, 0x4);
+addWithCharBytes('heic', 'ftyphevx', { mime: 'image/heic-sequence', extension: 'heic' }, 0x4);
+addWithCharBytes('mov', 'ftypqt', { mime: 'video/quicktime', extension: 'mov' }, 0x4);
+addWithCharBytes('m4v', 'ftypM4V', { mime: 'video/x-m4v', extension: 'm4v' }, 0x4);
+addWithCharBytes('m4v', 'ftypM4VH', { mime: 'video/x-m4v', extension: 'm4v' }, 0x4);
+addWithCharBytes('m4v', 'ftypM4VP', { mime: 'video/x-m4v', extension: 'm4v' }, 0x4);
+addWithCharBytes('m4p', 'ftypM4P', { mime: 'video/mp4', extension: 'm4p' }, 0x4);
+addWithCharBytes('m4b', 'ftypM4B', { mime: 'audio/mp4', extension: 'm4b' }, 0x4);
+addWithCharBytes('m4a', 'ftypM4A', { mime: 'audio/x-m4a', extension: 'm4a' }, 0x4);
+addWithCharBytes('f4v', 'ftypF4V', { mime: 'video/mp4', extension: 'f4v' }, 0x4);
+addWithCharBytes('f4p', 'ftypF4P', { mime: 'video/mp4', extension: 'f4p' }, 0x4);
+addWithCharBytes('f4a', 'ftypF4A', { mime: 'audio/mp4', extension: 'f4a' }, 0x4);
+addWithCharBytes('f4b', 'ftypF4B', { mime: 'audio/mp4', extension: 'f4b' }, 0x4);
+addWithCharBytes('cr3', 'ftypcrx', { mime: 'image/x-canon-cr3', extension: 'cr3' }, 0x4);
+addWithCharBytes('3g2', 'ftyp3g2', { mime: 'video/3gpp2', extension: '3g2' }, 0x4);
+addWithCharBytes('3gp', 'ftyp3g', { mime: 'video/3gpp', extension: '3gp' }, 0x4);
 add('pdb', [
     '0x00',
     '0x00',
@@ -388,7 +209,6 @@ add('dpx', ['0x53', '0x44', '0x50', '0x58']);
 add('dpx2', ['0x58', '0x50', '0x44', '0x53']);
 add('exr', ['0x76', '0x2F', '0x31', '0x01']);
 add('bpg', ['0x42', '0x50', '0x47', '0xFB']);
-
 add('ilbm', [
     '0x46',
     '0x4F',
@@ -417,7 +237,6 @@ add('8svx', [
     '0x56',
     '0x58',
 ]);
-
 add('acbm', [
     '0x46',
     '0x4F',
@@ -544,28 +363,23 @@ add('iff', [
     '0x4E',
     '0x54',
 ]);
-add(
-    'aiff',
-    [
-        '0x46',
-        '0x4F',
-        '0x52',
-        '0x4D',
-        '?',
-        '?',
-        '?',
-        '?',
-        '0x41',
-        '0x49',
-        '0x46',
-        '0x46',
-    ],
-    { mime: 'audio/x-aiff', extension: 'aiff' }
-);
+add('aiff', [
+    '0x46',
+    '0x4F',
+    '0x52',
+    '0x4D',
+    '?',
+    '?',
+    '?',
+    '?',
+    '0x41',
+    '0x49',
+    '0x46',
+    '0x46',
+], { mime: 'audio/x-aiff', extension: 'aiff' });
 add('idx', ['0x49', '0x4E', '0x44', '0x58']);
 add('lz', ['0x4C', '0x5A', '0x49', '0x50']);
 add('exe', ['0x4D', '0x5A']);
-
 add('zip', ['0x50', '0x4B', '0x03', '0x04'], {
     mime: 'application/zip',
     extension: 'zip',
@@ -578,7 +392,6 @@ add('zip', ['0x50', '0x4B', '0x07', '0x08'], {
     mime: 'application/zip',
     extension: 'zip',
 });
-
 add('jar', ['0x50', '0x4B', '0x03', '0x04'], {
     mime: 'application/java-archive',
     extension: 'jar',
@@ -591,7 +404,6 @@ add('jar', ['0x50', '0x4B', '0x07', '0x08'], {
     mime: 'application/java-archive',
     extension: 'jar',
 });
-
 add('odt', ['0x50', '0x4B', '0x03', '0x04'], {
     mime: 'application/vnd.oasis.opendocument.text',
     extension: 'odt',
@@ -604,7 +416,6 @@ add('odt', ['0x50', '0x4B', '0x07', '0x08'], {
     mime: 'application/vnd.oasis.opendocument.text',
     extension: 'odt',
 });
-
 add('ods', ['0x50', '0x4B', '0x03', '0x04'], {
     mime: 'application/vnd.oasis.opendocument.spreadsheet',
     extension: 'ods',
@@ -617,7 +428,6 @@ add('ods', ['0x50', '0x4B', '0x07', '0x08'], {
     mime: 'application/vnd.oasis.opendocument.spreadsheet',
     extension: 'ods',
 });
-
 add('odp', ['0x50', '0x4B', '0x03', '0x04'], {
     mime: 'application/vnd.oasis.opendocument.presentation',
     extension: 'odp',
@@ -630,7 +440,6 @@ add('odp', ['0x50', '0x4B', '0x07', '0x08'], {
     mime: 'application/vnd.oasis.opendocument.presentation',
     extension: 'odp',
 });
-
 add('docx', ['0x50', '0x4B', '0x03', '0x04'], {
     mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     extension: 'docx',
@@ -643,7 +452,6 @@ add('docx', ['0x50', '0x4B', '0x07', '0x08'], {
     mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     extension: 'docx',
 });
-
 add('xlsx', ['0x50', '0x4B', '0x03', '0x04'], {
     mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     extension: 'xlsx',
@@ -656,7 +464,6 @@ add('xlsx', ['0x50', '0x4B', '0x07', '0x08'], {
     mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     extension: 'xlsx',
 });
-
 add('pptx', ['0x50', '0x4B', '0x03', '0x04'], {
     mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     extension: 'pptx',
@@ -669,19 +476,15 @@ add('pptx', ['0x50', '0x4B', '0x07', '0x08'], {
     mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     extension: 'pptx',
 });
-
 add('vsdx', ['0x50', '0x4B', '0x03', '0x04']);
 add('vsdx', ['0x50', '0x4B', '0x05', '0x06']);
 add('vsdx', ['0x50', '0x4B', '0x07', '0x08']);
-
 add('apk', ['0x50', '0x4B', '0x03', '0x04']);
 add('apk', ['0x50', '0x4B', '0x05', '0x06']);
 add('apk', ['0x50', '0x4B', '0x07', '0x08']);
-
 add('aar', ['0x50', '0x4B', '0x03', '0x04']);
 add('aar', ['0x50', '0x4B', '0x05', '0x06']);
 add('aar', ['0x50', '0x4B', '0x07', '0x08']);
-
 add('rar', ['0x52', '0x61', '0x72', '0x21', '0x1A', '0x07', '0x00'], {
     mime: 'application/vnd.rar',
     extension: 'rar',
@@ -694,7 +497,6 @@ add('rar', ['0x7F', '0x45', '0x4C', '0x46'], {
     mime: 'application/vnd.rar',
     extension: 'rar',
 });
-
 add('png', ['0x89', '0x50', '0x4E', '0x47', '0x0D', '0x0A', '0x1A', '0x0A'], {
     mime: 'image/png',
     extension: 'png',
@@ -703,7 +505,6 @@ add('apng', ['0x89', '0x50', '0x4E', '0x47', '0x0D', '0x0A', '0x1A', '0x0A'], {
     mime: 'image/apng',
     extension: 'apng',
 });
-
 add('class', ['0xCA', '0xFE', '0xBA', '0xBE']);
 add('class', ['0xEF', '0xBB', '0xBF']);
 add('class', ['0xFE', '0xed', '0xFA', '0xCE'], undefined, 0x1000);
@@ -713,13 +514,11 @@ add('class', ['0xCF', '0xFA', '0xed', '0xFE']);
 add('class', ['0xFF', '0xFE']);
 add('class', ['0xFF', '0xFE']);
 add('class', ['0xFF', '0xFE', '0x00', '0x00']);
-
 add('ps', ['0x25', '0x21', '0x50', '0x53']);
 add('pdf', ['0x25', '0x50', '0x44', '0x46'], {
     mime: 'application/pdf',
     extension: 'pdf',
 });
-
 add('asf', [
     '0x30',
     '0x26',
@@ -756,7 +555,6 @@ add('wma', [
     '0xCE',
     '0x6C',
 ]);
-
 add('wmv', [
     '0x30',
     '0x26',
@@ -785,7 +583,6 @@ add('deploymentimage', [
     '0x30',
     '0x31',
 ]);
-
 add('ogg', ['0x4F', '0x67', '0x67', '0x53'], {
     mime: 'audio/ogg',
     extension: 'ogg',
@@ -798,59 +595,44 @@ add('ogv', ['0x4F', '0x67', '0x67', '0x53'], {
     mime: 'video/ogg',
     extension: 'ogv',
 });
-
 add('psd', ['0x38', '0x42', '0x50', '0x53'], {
     mime: 'application/x-photoshop',
     extension: 'psd',
 });
 add('clip', ['0x43', '0x53', '0x46', '0x43', '0x48', '0x55', '0x4e', '0x4b']);
-
-add(
-    'wav',
-    [
-        '0x52',
-        '0x49',
-        '0x46',
-        '0x46',
-        '?',
-        '?',
-        '?',
-        '?',
-        '0x57',
-        '0x41',
-        '0x56',
-        '0x45',
-    ],
-    { mime: 'audio/x-wav', extension: 'wav' }
-);
-add(
-    'avi',
-    [
-        '0x52',
-        '0x49',
-        '0x46',
-        '0x46',
-        '?',
-        '?',
-        '?',
-        '?',
-        '0x41',
-        '0x56',
-        '0x49',
-        '0x20',
-    ],
-    { mime: 'video/x-msvideo', extension: 'avi' }
-);
-
+add('wav', [
+    '0x52',
+    '0x49',
+    '0x46',
+    '0x46',
+    '?',
+    '?',
+    '?',
+    '?',
+    '0x57',
+    '0x41',
+    '0x56',
+    '0x45',
+], { mime: 'audio/x-wav', extension: 'wav' });
+add('avi', [
+    '0x52',
+    '0x49',
+    '0x46',
+    '0x46',
+    '?',
+    '?',
+    '?',
+    '?',
+    '0x41',
+    '0x56',
+    '0x49',
+    '0x20',
+], { mime: 'video/x-msvideo', extension: 'avi' });
 add('mp3', ['0xFF', '0xFB'], { mime: 'audio/mpeg', extension: 'mp3' });
 add('mp3', ['0x49', '0x44', '0x33'], { mime: 'audio/mpeg', extension: 'mp3' });
-
 add('bmp', ['0x42', '0x4D'], { mime: 'image/bmp', extension: 'bmp' });
-
 add('iso', ['0x43', '0x44', '0x30', '0x30', '0x31']);
-
 add('flac', ['0x66', '0x4C', '0x61', '0x43']);
-
 add('mid', ['0x4D', '0x54', '0x68', '0x64'], {
     mime: 'audio/midi',
     extension: 'mid',
@@ -859,7 +641,6 @@ add('midi', ['0x4D', '0x54', '0x68', '0x64'], {
     mime: 'audio/midi',
     extension: 'midi',
 });
-
 add('doc', ['0xD0', '0xCF', '0x11', '0xE0', '0xA1', '0xB1', '0x1A', '0xE1'], {
     mime: 'application/msword',
     extension: 'doc',
@@ -873,9 +654,7 @@ add('ppt', ['0xD0', '0xCF', '0x11', '0xE0', '0xA1', '0xB1', '0x1A', '0xE1'], {
     extension: 'ppt',
 });
 add('msg', ['0xD0', '0xCF', '0x11', '0xE0', '0xA1', '0xB1', '0x1A', '0xE1']);
-
 add('dex', ['0x64', '0x65', '0x78', '0x0A', '0x30', '0x33', '0x35', '0x00']);
-
 add('vmdk', ['0x4B', '0x44', '0x4D']);
 add('crx', ['0x43', '0x72', '0x32', '0x34']);
 add('fh8', ['0x41', '0x47', '0x44', '0x33']);
@@ -933,21 +712,9 @@ add('dmg', ['0x78', '0x01', '0x73', '0x0D', '0x62', '0x62', '0x60']);
 add('xar', ['0x78', '0x61', '0x72', '0x21']);
 add('dat', ['0x50', '0x4D', '0x4F', '0x43', '0x43', '0x4D', '0x4F', '0x43']);
 add('nes', ['0x4E', '0x45', '0x53', '0x1A']);
-add(
-    'tar',
-    ['0x75', '0x73', '0x74', '0x61', '0x72', '0x00', '0x30', '0x30'],
-    undefined,
-    0x101
-);
-add(
-    'tar',
-    ['0x75', '0x73', '0x74', '0x61', '0x72', '0x20', '0x20', '0x00'],
-    undefined,
-    0x101
-);
-
+add('tar', ['0x75', '0x73', '0x74', '0x61', '0x72', '0x00', '0x30', '0x30'], undefined, 0x101);
+add('tar', ['0x75', '0x73', '0x74', '0x61', '0x72', '0x20', '0x20', '0x00'], undefined, 0x101);
 add('tox', ['0x74', '0x6F', '0x78', '0x33']);
-
 add('mlv', ['0x4D', '0x4C', '0x56', '0x49']);
 add('windowsupdate', [
     '0x44',
@@ -963,13 +730,11 @@ add('7z', ['0x37', '0x7A', '0xBC', '0xAF', '0x27', '0x1C'], {
     mime: 'application/x-7z-compressed',
     extension: '7z',
 });
-
 add('gz', ['0x1F', '0x8B'], { mime: 'application/gzip', extension: 'gz' });
 add('tar.gz', ['0x1F', '0x8B'], {
     mime: 'application/gzip',
     extension: 'tar.gz',
 });
-
 add('xz', ['0xFD', '0x37', '0x7A', '0x58', '0x5A', '0x00', '0x00'], {
     mime: 'application/gzip',
     extension: 'xz',
@@ -978,7 +743,6 @@ add('tar.xz', ['0xFD', '0x37', '0x7A', '0x58', '0x5A', '0x00', '0x00'], {
     mime: 'application/gzip',
     extension: 'tar.xz',
 });
-
 add('lz2', ['0x04', '0x22', '0x4D', '0x18']);
 add('cab', ['0x4D', '0x53', '0x43', '0x46']);
 add('mkv', ['0x1A', '0x45', '0xDF', '0xA3']);
@@ -1005,12 +769,10 @@ add('swf', ['0x46', '0x57', '0x53'], {
     extension: 'swf',
 });
 add('deb', ['0x21', '0x3C', '0x61', '0x72', '0x63', '0x68', '0x3E']);
-
 add('rtf', ['0x7B', '0x5C', '0x72', '0x74', '0x66', '0x31'], {
     mime: 'application/rtf',
     extension: 'rtf',
 });
-
 add('m2p', ['0x00', '0x00', '0x01', '0xBA']);
 add('vob', ['0x00', '0x00', '0x01', '0xBA']);
 add('mpg', ['0x00', '0x00', '0x01', '0xBA'], {
@@ -1026,7 +788,5 @@ add('mpeg', ['0x00', '0x00', '0x01', '0xB3'], {
     mime: 'video/mpeg',
     extension: 'mpeg',
 });
-
 add('hl2demo', ['48', '4C', '32', '44', '45', '4D', '4F']);
-
-export default (): Tree => tree as Tree;
+exports.default = () => tree;
