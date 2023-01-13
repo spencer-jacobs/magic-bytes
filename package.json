@@ -1,6 +1,6 @@
 {
   "name": "magic-bytes.js",
-  "version": "1.0.13",
+  "version": "1.0.13-1",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -12,12 +12,12 @@
     "build": "tsc"
   },
   "repository": {
-    "url": "https://github.com/LarsKoelpin/magic-bytes",
+    "url": "https://github.com/spencer-jacobs/magic-bytes",
     "type": "git"
   },
   "author": "Lars Kölpin",
   "license": "MIT",
-  "description": "Detect Filetype by bytes",
+  "description": "Forked from https://github.com/LarsKoelpin/magic-bytes Detect Filetype by bytes",
   "keywords": [
     "magic-bytes",
     "mime",
